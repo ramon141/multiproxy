@@ -1,0 +1,8 @@
+authtoken: 28LJPjKS4HTzghOmKw59f16Vd0c_3x6FPjMngVbZ2Rj8sRqFX
+tunnels:
+  first-app:
+    addr: 5000
+    proto: http
+  second-app:
+    addr: 80
+    proto: http
