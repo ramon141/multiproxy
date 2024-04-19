@@ -15,6 +15,7 @@ def catch_all(path):
     # Obtém os dados da requisição
     data = request.get_data()
     headers = dict(request.headers)  # Converte EnvironHeaders para um dicionário
+    headers.pop('Host', None)  # Remove o cabeçalho 'Host'
 
     # Remove o cabeçalho "Host" do dicionário de cabeçalhos
     if 'Host' in headers:
@@ -43,7 +44,7 @@ def catch_all(path):
         flask_response = Response(response.content, status=response.status_code)
         for key, value in response.headers.items():
             # Ajusta o cabeçalho 'Content-Encoding' se o conteúdo foi descomprimido
-            if key.lower() == 'content-encoding' and 'gzip' in value:
+            if key.lower() in ['content-encoding', 'content-length'] and 'gzip' in value:
                 continue
             flask_response.headers[key] = value
 
