@@ -1,12 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import requests
+from flask import Response
 import re
 
 app = Flask(__name__)
 
 # URL da outra API para a qual os dados serão redirecionados
-API_SIGAA_URL = "https://sigaa-api.up.railway.app/"
-AUTH_URL = "http://localhost/"
+AUTH_URL = "https://autenticacao.ufopa.edu.br/"
+API_SIGAA_URL = "https://api.dev.ufopa.edu.br/"
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])
 @app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])
@@ -17,22 +18,17 @@ def catch_all(path):
 
     # Remove o cabeçalho "Host" do dicionário de cabeçalhos
     if 'Host' in headers:
-        del headers['Host'] # Não sei por que, mas da erro
-    
+        del headers['Host']  # Não sei por que, mas da erro
+
     # Monta a URL da outra API
     if path.startswith('api/'):
         target_url = API_SIGAA_URL + re.sub('api/', '', path, 1)
-    elif path.startswith('auth/'):
-        target_url = AUTH_URL + re.sub('auth/', '', path, 1)
-    if path.startswith('api'):
+    elif path.startswith('api'):
         target_url = API_SIGAA_URL + re.sub('api', '', path, 1)
-    elif path.startswith('auth'):
-        target_url = AUTH_URL + re.sub('auth', '', path, 1)
     else:
-        return f"A rota {path} não é reconhecida", 500
+        target_url = AUTH_URL + path
     
     try:
-        # Faz a chamada para a outra API
         response = requests.request(
             method=request.method,
             url=target_url,
@@ -43,13 +39,16 @@ def catch_all(path):
             timeout=10  # Defina o timeout desejado
         )
 
-        # Retorna os resultados da outra API
-        return response.text, response.status_code
+        # Criando uma resposta do Flask com os cabeçalhos da resposta original
+        flask_response = Response(response.content, status=response.status_code)
+        for key, value in response.headers.items():
+            flask_response.headers[key] = value
+
+        return flask_response
     except requests.RequestException as e:
         print(e)
         # Lida com erros de requisição
         return str(e), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)
