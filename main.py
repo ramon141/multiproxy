@@ -6,7 +6,7 @@ import re
 app = Flask(__name__)
 
 # URL da outra API para a qual os dados serão redirecionados
-AUTH_URL = "https://autenticacao.ufopa.edu.br/"
+AUTH_URL = "https://autenticacao.dev.ufopa.edu.br/"
 API_SIGAA_URL = "https://api.dev.ufopa.edu.br/"
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])
@@ -42,6 +42,9 @@ def catch_all(path):
         # Criando uma resposta do Flask com os cabeçalhos da resposta original
         flask_response = Response(response.content, status=response.status_code)
         for key, value in response.headers.items():
+            # Ajusta o cabeçalho 'Content-Encoding' se o conteúdo foi descomprimido
+            if key.lower() == 'content-encoding' and 'gzip' in value:
+                continue
             flask_response.headers[key] = value
 
         return flask_response
