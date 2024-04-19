@@ -37,11 +37,13 @@ def catch_all(path):
             headers=headers,
             params=request.args,
             verify=False,
-            timeout=10  # Defina o timeout desejado
+            timeout=10,  # Defina o timeout desejado
+            stream=True
         )
 
         # Criando uma resposta do Flask com os cabeçalhos da resposta original
-        flask_response = Response(response.content, status=response.status_code)
+        flask_response = Response(response.iter_content(chunk_size=10240),
+                                  status=response.status_code)
         for key, value in response.headers.items():
             # Ajusta o cabeçalho 'Content-Encoding' se o conteúdo foi descomprimido
             if key.lower() in ['content-encoding', 'content-length'] and 'gzip' in value:
